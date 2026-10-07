@@ -12,7 +12,7 @@ this comment:
 [![Watch the walkthrough video](https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
 -->
 
-![The player next to a note: the chapter list with ‹ › to move between chapters, and the paragraph being read marked in the note](docs/player.png)
+![The player next to a note: the chapter list with ‹ › to move between chapters, and the paragraph being read marked in the note](https://raw.githubusercontent.com/xMisio72/tts-chapter-reader/main/docs/player.png)
 
 ## Quick start
 
@@ -24,7 +24,7 @@ this comment:
 
 Reading starts by itself once the voice is ready.
 
-![The first-run question](docs/first-run.png)
+![The first-run question](https://raw.githubusercontent.com/xMisio72/tts-chapter-reader/main/docs/first-run.png)
 
 ## What it does
 
@@ -45,11 +45,11 @@ Reading starts by itself once the voice is ready.
 - **Compact player.** The arrows in the player's header fold it to a header and one row of controls; the "?" lists all commands with their hotkeys and copies the spoken text.
 - **Clean text.** Properties, code blocks, tables, images, link addresses and Markdown symbols are not read aloud. You choose what to skip in the settings.
 
-![The small player: one row with chapter buttons, play/pause, stop, volume and the position](docs/mini-player.png)
+![The small player: one row with chapter buttons, play/pause, stop, volume and the position](https://raw.githubusercontent.com/xMisio72/tts-chapter-reader/main/docs/mini-player.png)
 
 ## Voices
 
-![The settings page: voice, speaker, where it runs, and translation for notes in other languages](docs/settings.png)
+![The settings page: voice, speaker, where it runs, and translation for notes in other languages](https://raw.githubusercontent.com/xMisio72/tts-chapter-reader/main/docs/settings.png)
 
 Pick one under Settings → TTS Chapter Reader → Voice.
 
