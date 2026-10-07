@@ -1,0 +1,32 @@
+# vscode
+.vscode
+
+# Intellij
+*.iml
+.idea
+
+# npm
+node_modules
+
+# The compiled main.js is not kept in the repo; it is attached to releases.
+main.js
+
+# Exclude sourcemaps
+*.map
+
+# Obsidian: a plugin's saved settings, and the demo vault's own config
+data.json
+demo-vault/.obsidian/
+
+# Test bundles
+.test-build/
+
+# Screenshots used by the README (images are ignored further up the tree)
+!docs/*.png
+
+# macOS
+.DS_Store
+
+CLAUDE.md
+.cursorignore
+.claude

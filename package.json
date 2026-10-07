@@ -1,0 +1,49 @@
+{
+	"name": "tts-chapter-reader",
+	"version": "1.0.0",
+	"description": "Obsidian plugin: read notes aloud as chapters, with a free built-in neural voice.",
+	"main": "main.js",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"test": "node scripts/test.mjs",
+		"version": "node version-bump.mjs && git add manifest.json versions.json",
+		"lint": "eslint src",
+		"e2e": "python tests/e2e/obsidian_e2e.py"
+	},
+	"keywords": [
+		"obsidian-plugin",
+		"TTS",
+		"Text-to-Speech",
+		"Read Aloud",
+		"Kokoro",
+		"Audiobook"
+	],
+	"author": "xMisio72",
+	"license": "AGPL-3.0",
+	"devDependencies": {
+		"@codemirror/state": "^6.7.6",
+		"@codemirror/view": "^6.38.6",
+		"@eslint/js": "^9.39.5",
+		"@eslint/json": "^0.14.0",
+		"@types/node": "^22.0.0",
+		"@types/react": "^19.1.13",
+		"@types/react-dom": "^19.1.9",
+		"builtin-modules": "^5.0.0",
+		"esbuild": "^0.28.2",
+		"eslint": "^9.39.5",
+		"eslint-plugin-obsidianmd": "^0.4.2",
+		"obsidian": "latest",
+		"tslib": "^2.8.1",
+		"typescript": "^5.9.2",
+		"typescript-eslint": "^8.71.1"
+	},
+	"dependencies": {
+		"@breezystack/lamejs": "^1.2.7",
+		"@huggingface/transformers": "^3.5.1",
+		"franc-min": "^6.2.0",
+		"kokoro-js": "^1.2.1",
+		"react": "^19.1.1",
+		"react-dom": "^19.1.1"
+	}
+}

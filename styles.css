@@ -1,0 +1,614 @@
+/* TTS Chapter Reader
+   One small type scale (--font-ui-small / --font-ui-smaller), Obsidian's own
+   colors and radii, nothing decorative. */
+
+/* ─── Status bar ───────────────────────────────────────────────────────── */
+.tcr-status-bar-control {
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	margin: 0 4px;
+	color: var(--text-muted);
+}
+
+.tcr-status-bar-control:hover {
+	color: var(--text-normal);
+}
+
+/* ─── Floating player ──────────────────────────────────────────────────── */
+.tcr-player {
+	position: fixed;
+	z-index: var(--layer-popover);
+	width: 300px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 12px;
+	background-color: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	box-shadow: var(--shadow-s);
+	font-size: var(--font-ui-small);
+	user-select: none;
+	cursor: grab;
+	touch-action: none;
+}
+
+.tcr-player.is-dragging {
+	cursor: grabbing;
+}
+
+.tcr-player button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: auto;
+	padding: 4px;
+	background: none;
+	border: none;
+	box-shadow: none;
+	border-radius: var(--radius-s);
+	color: var(--text-muted);
+	cursor: pointer;
+}
+
+.tcr-player button:hover:not(:disabled) {
+	background-color: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+.tcr-player button:disabled {
+	color: var(--text-faint);
+	cursor: default;
+}
+
+.tcr-player input[type="range"] {
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
+.tcr-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tcr-icon svg {
+	width: 16px;
+	height: 16px;
+}
+
+.tcr-spin svg {
+	animation: tcr-spin 1.2s linear infinite;
+}
+
+@keyframes tcr-spin {
+	to { transform: rotate(360deg); }
+}
+
+.tcr-close .tcr-icon svg {
+	width: 14px;
+	height: 14px;
+}
+
+/* Header: note name, help, small/full, close */
+.tcr-header {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	min-height: 20px;
+}
+
+.tcr-header-spacer {
+	flex: 1;
+}
+
+.tcr-player .tcr-title {
+	flex: 0 1 auto;
+	min-width: 0;
+	padding: 0 4px 0 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: var(--font-ui-smaller);
+	font-weight: 600;
+	color: var(--text-normal);
+	background: none;
+	box-shadow: none;
+	height: auto;
+	text-align: left;
+}
+
+.tcr-player button.tcr-title:hover {
+	color: var(--text-accent);
+}
+
+.tcr-player .tcr-icon-btn {
+	flex-shrink: 0;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	background: none;
+	box-shadow: none;
+	color: var(--text-muted);
+}
+
+.tcr-player .tcr-icon-btn:hover,
+.tcr-player .tcr-icon-btn.is-active {
+	color: var(--text-normal);
+}
+
+.tcr-player .tcr-icon-btn.is-pinned {
+	color: var(--color-yellow);
+}
+
+.tcr-icon-btn .tcr-icon svg {
+	width: 14px;
+	height: 14px;
+}
+
+/* Help card */
+.tcr-help {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	padding: 6px 8px;
+	border-radius: var(--radius-s);
+	background: var(--background-secondary);
+	font-size: var(--font-ui-smaller);
+}
+
+.tcr-help-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.tcr-help-keys {
+	flex-shrink: 0;
+	font-family: var(--font-monospace);
+	color: var(--text-muted);
+}
+
+.tcr-help-keys.is-empty {
+	font-family: inherit;
+	font-style: italic;
+}
+
+.tcr-help-actions {
+	display: flex;
+	gap: 6px;
+	margin-top: 4px;
+}
+
+.tcr-player .tcr-text-btn {
+	height: auto;
+	padding: 2px 8px;
+	font-size: var(--font-ui-smaller);
+}
+
+/* Small player: one row */
+.tcr-player.is-mini {
+	width: auto;
+	min-width: 220px;
+	gap: 4px;
+	padding: 6px 8px 8px;
+}
+
+.tcr-mini-row {
+	justify-content: flex-start;
+}
+
+.tcr-mini-info {
+	margin-left: 4px;
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+	color: var(--text-muted);
+	white-space: nowrap;
+}
+
+/* Speaker picker */
+.tcr-voice-list {
+	max-height: 60vh;
+	overflow-y: auto;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.tcr-voice-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 0;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.tcr-voice-row.is-chosen .tcr-voice-name {
+	color: var(--text-accent);
+	font-weight: 600;
+}
+
+.tcr-voice-picker .tcr-voice-name {
+	flex: 1;
+	display: flex;
+	justify-content: flex-start;
+	text-align: left;
+	background: none;
+	box-shadow: none;
+	padding: 6px 4px;
+	height: auto;
+	font-size: var(--font-ui-small);
+}
+
+.tcr-voice-picker .tcr-voice-name:hover {
+	color: var(--text-accent);
+}
+
+.tcr-voice-picker .tcr-voice-star.is-on {
+	color: var(--color-yellow);
+}
+
+/* A declarative settings row that the plugin fills with its own rows */
+.setting-item.tcr-embed {
+	display: block;
+	padding: 0;
+	border: none;
+}
+
+.setting-item.tcr-embed .setting-item {
+	padding: var(--size-4-3) 0;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+/* Reading list */
+.tcr-upnext {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+}
+
+.tcr-upnext-text {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tcr-chapter-now {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-normal);
+}
+
+.tcr-player .tcr-filter {
+	width: 100%;
+	margin-top: 4px;
+	height: 24px;
+	font-size: var(--font-ui-smaller);
+}
+
+.tcr-chapters-tools {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+}
+
+/* Timeline / status line */
+.tcr-progress {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 20px;
+	padding-right: 20px;
+}
+
+.tcr-time {
+	min-width: 34px;
+	text-align: center;
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+	color: var(--text-muted);
+}
+
+.tcr-status {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+}
+
+/* Transport buttons */
+.tcr-controls {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+}
+
+.tcr-player .tcr-controls .tcr-main {
+	color: var(--text-normal);
+}
+
+.tcr-controls .tcr-main .tcr-icon svg {
+	width: 20px;
+	height: 20px;
+}
+
+/* Speed */
+.tcr-speed {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* Volume: a speaker icon in the transport row, the slider on demand */
+.tcr-vol-wrap {
+	position: relative;
+	display: inline-flex;
+	margin-left: 4px;
+}
+
+.tcr-player .tcr-vol-btn {
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	background: none;
+	box-shadow: none;
+	color: var(--text-muted);
+}
+
+.tcr-player .tcr-vol-btn:hover {
+	color: var(--text-normal);
+}
+
+.tcr-player .tcr-vol-btn.is-muted {
+	color: var(--text-error);
+}
+
+.tcr-vol-btn .tcr-icon svg {
+	width: 16px;
+	height: 16px;
+}
+
+.tcr-vol-pop {
+	position: absolute;
+	right: 0;
+	bottom: calc(100% + 4px);
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	width: 170px;
+	padding: 6px 8px;
+	border-radius: var(--radius-s);
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	box-shadow: var(--shadow-s);
+	z-index: 1;
+}
+
+.tcr-player .tcr-vol-pct {
+	min-width: 38px;
+	height: auto;
+	padding: 2px 4px;
+	background: none;
+	box-shadow: none;
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+	color: var(--text-muted);
+}
+
+.tcr-player .tcr-vol-pct:hover {
+	color: var(--text-normal);
+}
+
+.tcr-speed-label {
+	min-width: 34px;
+	text-align: center;
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+	color: var(--text-muted);
+}
+
+/* ─── Chapter list ─────────────────────────────────────────────────────── */
+.tcr-chapters {
+	border-top: 1px solid var(--background-modifier-border);
+	padding-top: 4px;
+}
+
+.tcr-chapters-head {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+}
+
+.tcr-player .tcr-chapters-toggle {
+	gap: 4px;
+	font-size: var(--font-ui-smaller);
+}
+
+.tcr-chapters-toggle .tcr-icon svg {
+	width: 12px;
+	height: 12px;
+}
+
+.tcr-player .tcr-hidden-toggle {
+	padding: 0 8px;
+	font-size: var(--font-ui-smaller);
+	border: 1px solid var(--background-modifier-border);
+}
+
+.tcr-player .tcr-hidden-toggle.is-active {
+	color: var(--text-accent);
+	border-color: var(--text-accent);
+}
+
+.tcr-chapters-list {
+	max-height: 220px;
+	overflow-y: auto;
+	margin-top: 4px;
+	cursor: default;
+}
+
+.tcr-chapter {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px;
+	border-radius: var(--radius-s);
+}
+
+.tcr-chapter:hover,
+.tcr-chapter.is-current {
+	background-color: var(--background-modifier-hover);
+}
+
+.tcr-chapter.is-current .tcr-chapter-title {
+	color: var(--text-accent);
+}
+
+.tcr-chapter.is-dimmed {
+	opacity: 0.5;
+}
+
+.tcr-player .tcr-chapter-main {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: 1;
+	min-width: 0;
+	height: auto;
+	padding: 0;
+	background: none;
+	box-shadow: none;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.tcr-player .tcr-chapter-main:disabled {
+	cursor: default;
+}
+
+.tcr-chapter-num {
+	width: 16px;
+	flex-shrink: 0;
+	text-align: right;
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+	color: var(--text-faint);
+}
+
+.tcr-chapter-title {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--text-normal);
+}
+
+.tcr-chapter-title.is-struck {
+	text-decoration: line-through;
+	color: var(--text-muted);
+}
+
+.tcr-chapter-duration {
+	flex-shrink: 0;
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+	color: var(--text-muted);
+}
+
+/* Yellow dot: not recorded yet, or the text changed */
+.tcr-chapter-new {
+	flex-shrink: 0;
+	font-size: 8px;
+	color: var(--color-yellow);
+}
+
+.tcr-chapter-saved {
+	flex-shrink: 0;
+	font-size: 8px;
+	color: var(--color-green);
+}
+
+/* The paragraph being read aloud, in the editor */
+.cm-line.tcr-reading-line {
+	background-color: hsla(var(--color-accent-hsl), 0.1);
+	box-shadow: inset 3px 0 0 hsla(var(--color-accent-hsl), 0.6);
+}
+
+/* "EN": this chapter is read in English translation */
+.tcr-chapter-lang {
+	flex-shrink: 0;
+	font-size: 9px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	padding: 0 3px;
+	border-radius: 3px;
+	color: var(--text-muted);
+	border: 1px solid var(--background-modifier-border);
+}
+
+.tcr-chapter-recording {
+	flex-shrink: 0;
+	color: var(--text-accent);
+}
+
+.tcr-chapter-recording .tcr-icon svg,
+.tcr-chapter-btn .tcr-icon svg {
+	width: 13px;
+	height: 13px;
+}
+
+.tcr-player .tcr-chapter-btn {
+	flex-shrink: 0;
+	padding: 2px;
+	color: var(--text-faint);
+}
+
+.tcr-player .tcr-chapter-btn.is-pinned {
+	color: var(--color-yellow);
+}
+
+.tcr-player .tcr-chapter-btn.is-hidden-flag {
+	color: var(--color-red);
+}
+
+/* ─── Settings and first-run dialog ────────────────────────────────────── */
+.tcr-details {
+	margin-bottom: var(--size-4-4);
+}
+
+.tcr-details > summary {
+	padding: var(--size-4-2) 0;
+	cursor: pointer;
+	color: var(--text-muted);
+}
+
+.tcr-muted {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+}
+
+.tcr-error {
+	color: var(--text-error);
+}
+
+.tcr-download-bar {
+	margin: var(--size-4-2) 0;
+}
+
+.tcr-download-bar .setting-progress-bar {
+	width: 100%;
+}
