@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import type { FunctionComponent } from 'preact';
+import { useState, useEffect, useRef } from 'preact/hooks';
 import { useDrag } from './useDrag';
 import { setIcon } from 'obsidian';
 
@@ -7,7 +8,7 @@ interface ObsidianIconProps {
   className?: string;
 }
 
-const ObsidianIcon: React.FC<ObsidianIconProps> = ({ icon, className }) => {
+const ObsidianIcon: FunctionComponent<ObsidianIconProps> =({ icon, className }) => {
   const iconRef = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     if (iconRef.current) {
@@ -100,7 +101,7 @@ function formatTime(timeInSeconds: number): string {
   return `${minutes}:${seconds}`;
 }
 
-export const FloatingPlayerUI: React.FC<FloatingPlayerUIProps> = ({
+export const FloatingPlayerUI: FunctionComponent<FloatingPlayerUIProps> = ({
   isVisible,
   onClose,
   title,
@@ -271,7 +272,7 @@ export const FloatingPlayerUI: React.FC<FloatingPlayerUIProps> = ({
             max="1"
             step="0.05"
             value={volume}
-            onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
+            onChange={(e) => onVolumeChange(parseFloat(e.currentTarget.value))}
             className="tcr-speed-slider"
             aria-label="Volume"
           />
@@ -368,7 +369,7 @@ export const FloatingPlayerUI: React.FC<FloatingPlayerUIProps> = ({
               max={duration}
               step="0.1"
               value={Math.min(currentTime, duration)}
-              onChange={(e) => onSeek?.(parseFloat(e.target.value))}
+              onChange={(e) => onSeek?.(parseFloat(e.currentTarget.value))}
               className="tcr-seek"
               aria-label="Seek"
             />
@@ -404,7 +405,7 @@ export const FloatingPlayerUI: React.FC<FloatingPlayerUIProps> = ({
             max="3"
             step="0.1"
             value={speed}
-            onChange={(e) => onSpeedChange(Math.round(parseFloat(e.target.value) * 10) / 10)}
+            onChange={(e) => onSpeedChange(Math.round(parseFloat(e.currentTarget.value) * 10) / 10)}
             className="tcr-speed-slider"
             aria-label="Playback speed"
           />
@@ -464,7 +465,7 @@ export const FloatingPlayerUI: React.FC<FloatingPlayerUIProps> = ({
               className="tcr-filter"
               placeholder="Filter chapters"
               value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+              onChange={(e) => setFilter(e.currentTarget.value)}
               aria-label="Filter chapters by title"
             />
           )}

@@ -1,7 +1,7 @@
 {
 	"id": "tts-chapter-reader",
 	"name": "TTS Chapter Reader",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "1.11.4",
 	"description": "Listen to notes like an audiobook: every heading is a chapter, and only chapters you edit are recorded again. Free natural voice that runs on your computer, or your own server or API key.",
 	"author": "xMisio72",

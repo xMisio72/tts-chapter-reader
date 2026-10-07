@@ -1,5 +1,5 @@
-import React from 'react';
-import ReactDOMClient from 'react-dom/client';
+import { createElement } from 'preact';
+import { createRoot } from 'preact/compat/client';
 import { FloatingPlayerUI, ChapterRowData, HelpItem } from '../ui/FloatingPlayerUI';
 import type { AudioPlaybackManager, PlaybackState } from './audio-playback';
 
@@ -61,7 +61,7 @@ const GUESS = { width: 300, height: 420 };
 
 export class FloatingUIManager {
   private host: HTMLElement | null = null;
-  private root: ReactDOMClient.Root | null = null;
+  private root: ReturnType<typeof createRoot> | null = null;
   private visible = false;
   private state: PlaybackState = IDLE;
   private chapterUI: ChapterUIData | null = null;
@@ -124,7 +124,7 @@ export class FloatingUIManager {
   public showPlayer(initial?: PlaybackState): void {
     if (!this.host) {
       this.host = document.body.createDiv({ cls: 'tcr-player-host' });
-      this.root = ReactDOMClient.createRoot(this.host);
+      this.root = createRoot(this.host);
     }
     this.visible = true;
     this.state = initial ?? IDLE;
@@ -168,7 +168,7 @@ export class FloatingUIManager {
     };
 
     this.root.render(
-      React.createElement(FloatingPlayerUI, {
+      createElement(FloatingPlayerUI, {
         isVisible: this.visible,
         onClose: () => this.hidePlayer(),
         title: chapterUI?.title,

@@ -11,8 +11,10 @@
 		"importHelpers": true,
 		"isolatedModules": true,
 		"strictNullChecks": true,
+		"strictBindCallApply": true,
 		"strictPropertyInitialization": false,
 		"jsx": "react-jsx",
+		"jsxImportSource": "preact",
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"lib": ["DOM", "DOM.Iterable", "ES2022"]

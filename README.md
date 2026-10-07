@@ -147,7 +147,7 @@ It builds on these projects:
 - [ONNX Runtime Web](https://github.com/microsoft/onnxruntime), MIT
 - [phonemizer.js](https://github.com/xenova/phonemizer.js), Apache-2.0, which includes [eSpeak NG](https://github.com/espeak-ng/espeak-ng), GPL-3.0
 - [lamejs](https://github.com/shijinyu/lamejs) MP3 encoder, LGPL-3.0
-- [React](https://react.dev), MIT
+- [Preact](https://preactjs.com), MIT
 
 ## Development
 

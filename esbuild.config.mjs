@@ -1,6 +1,6 @@
 import esbuild from "esbuild";
 import process from "process";
-import builtins from "builtin-modules";
+import { builtinModules as builtins } from "module";
 import { buildWorker, runtimeInfo } from "./scripts/worker-build.mjs";
 
 const banner = `/*
@@ -69,6 +69,10 @@ const context = await esbuild.context({
 		__ORT_WASM_BYTES__: String(runtime.bytes),
 	},
 	plugins: [inlineWorker],
+	// The player uses Preact (not React DOM, whose bundle carries script
+	// injection code that the directory review flags).
+	jsx: "automatic",
+	jsxImportSource: "preact",
 	loader: {
 		".svg": "text",
 		".tsx": "tsx",

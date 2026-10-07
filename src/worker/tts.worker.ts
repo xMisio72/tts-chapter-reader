@@ -34,7 +34,7 @@ const scope = self as unknown as WorkerScope;
 
 // ---------------------------------------------------------------- sandboxed fetch
 
-const nativeFetch: typeof fetch = scope.fetch.bind(self) as typeof fetch;
+const nativeFetch: typeof fetch = scope.fetch.bind(self);
 
 scope.fetch = async (input: RequestInfo | URL): Promise<Response> => {
   const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;

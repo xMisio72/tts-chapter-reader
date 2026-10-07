@@ -1,4 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import type { TargetedPointerEvent } from 'preact';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+
+type PointerEvt = TargetedPointerEvent<HTMLElement>;
 
 /**
  * Lets an absolutely positioned element be dragged by its background.
@@ -28,7 +31,7 @@ export function useDrag(start: Point, onDrop?: (at: Point) => void) {
     latest.current = start;
   }, [start.x, start.y]);
 
-  const onPointerDown = useCallback((e: React.PointerEvent<HTMLElement>) => {
+  const onPointerDown = useCallback((e: PointerEvt) => {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     if (e.target instanceof Element && e.target.closest(NOT_A_HANDLE)) return;
     const box = e.currentTarget.getBoundingClientRect();
@@ -38,7 +41,7 @@ export function useDrag(start: Point, onDrop?: (at: Point) => void) {
     e.preventDefault();
   }, []);
 
-  const onPointerMove = useCallback((e: React.PointerEvent<HTMLElement>) => {
+  const onPointerMove = useCallback((e: PointerEvt) => {
     if (!grip.current) return;
     const box = e.currentTarget.getBoundingClientRect();
     // The top edge never leaves the screen: that is where the handle is.
@@ -51,7 +54,7 @@ export function useDrag(start: Point, onDrop?: (at: Point) => void) {
   }, []);
 
   const onPointerUp = useCallback(
-    (e: React.PointerEvent<HTMLElement>) => {
+    (e: PointerEvt) => {
       if (!grip.current) return;
       grip.current = null;
       setActive(false);
