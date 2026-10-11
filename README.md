@@ -4,6 +4,8 @@ Listen to your Obsidian notes like an audiobook. Every heading becomes a chapter
 
 It comes with a free natural voice that runs on your own computer: no account, no API key, and your notes never leave your machine.
 
+**New here? Watch the walkthrough video** to see the install, the first run and every feature in action. Click the picture to play it on YouTube.
+
 [![Watch the walkthrough video](https://img.youtube.com/vi/7YPGq5jYrvs/maxresdefault.jpg)](https://www.youtube.com/watch?v=7YPGq5jYrvs)
 
 ![The player next to a note: the chapter list with ‹ › to move between chapters, and the paragraph being read marked in the note](https://raw.githubusercontent.com/xMisio72/tts-chapter-reader/main/docs/player.png)
