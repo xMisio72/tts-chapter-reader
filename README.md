@@ -4,13 +4,7 @@ Listen to your Obsidian notes like an audiobook. Every heading becomes a chapter
 
 It comes with a free natural voice that runs on your own computer: no account, no API key, and your notes never leave your machine.
 
-<!--
-VIDEO: GitHub and the Obsidian plugin page do not play embedded videos, so the
-walkthrough goes in as a clickable thumbnail. Replace VIDEO_ID twice and remove
-this comment:
-
-[![Watch the walkthrough video](https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
--->
+[![Watch the walkthrough video](https://img.youtube.com/vi/7YPGq5jYrvs/maxresdefault.jpg)](https://www.youtube.com/watch?v=7YPGq5jYrvs)
 
 ![The player next to a note: the chapter list with ‹ › to move between chapters, and the paragraph being read marked in the note](https://raw.githubusercontent.com/xMisio72/tts-chapter-reader/main/docs/player.png)
 
