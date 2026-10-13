@@ -112,8 +112,6 @@ export interface PluginSettings {
   lastVolume: number;
   /** A short silence before a chapter's first words, so the start is easier to catch at speed. */
   pauseAtChapterStart: boolean;
-  /** Recordings play through the plugin's own time-stretcher (natural pitch, sharp onsets at any speed). */
-  crispSpeed: boolean;
   /** The player folded to one row. */
   playerMini: boolean;
   /** Play only favorite chapters. */
@@ -187,7 +185,6 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   volume: 1,
   lastVolume: 1,
   pauseAtChapterStart: true,
-  crispSpeed: true,
   playerMini: false,
   favoritesOnly: false,
   followReading: true,

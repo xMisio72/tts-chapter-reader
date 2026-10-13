@@ -933,7 +933,6 @@ export default class TtsChapterReaderPlugin extends Plugin {
   onunload() {
     this.alive = false;
     this.audioManager.stopPlayback();
-    this.audioManager.destroy();
     this.closeSession();
     this.recorder.dropAll();
     this.worker.dispose();

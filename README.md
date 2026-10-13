@@ -28,7 +28,7 @@ Reading starts by itself once the voice is ready.
 - **Records once, plays instantly.** Each chapter is recorded the first time you listen and saved. Next time it starts at once.
 - **Only re-records what changed.** Edit a chapter and only that chapter gets a yellow dot and is recorded again. The others keep their audio and show a green dot.
 - **Starts fast.** Playback begins after the first sentence while the rest of the chapter is still being recorded. Later chapters are recorded in the background.
-- **Speed from 0.5x to 3x** with natural pitch, through the plugin's own time-stretcher, so the first sounds of a sentence stay sharp even at 3x (Settings → Player → Crisp speed; off = the browser's speed control). A speaker icon in the controls holds the plugin's own volume: click for the slider, scroll on it to nudge, click the percentage to mute and unmute (back to the level you had), so notes can play quietly next to music or a call.
+- **Speed from 0.5x to 3x** with natural pitch. A speaker icon in the controls holds the plugin's own volume: click for the slider, scroll on it to nudge, click the percentage to mute and unmute (back to the level you had), so notes can play quietly next to music or a call.
 - **Favorites and hidden chapters.** Star the chapters you like; hide the ones playback should skip.
 - **Follows along.** The paragraph being read is marked in the note, the words being spoken inside it a shade stronger, and both are kept in view (Settings → Player → Follow the reading in the note).
 - **Start where you click.** Ctrl+Alt+click a paragraph (Cmd+Alt on Mac), or use "Read aloud from here", and the note starts at that paragraph's chapter, right at the paragraph when it is already recorded.

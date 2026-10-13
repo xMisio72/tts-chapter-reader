@@ -1,6 +1,6 @@
 {
 	"name": "tts-chapter-reader",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"description": "Obsidian plugin: read notes aloud as chapters, with a free built-in neural voice.",
 	"main": "main.js",
 	"scripts": {
@@ -43,7 +43,6 @@
 		"@huggingface/transformers": "^3.5.1",
 		"franc-min": "^6.2.0",
 		"kokoro-js": "^1.2.1",
-		"preact": "^10.29.8",
-		"signalsmith-stretch": "^1.3.2"
+		"preact": "^10.29.8"
 	}
 }

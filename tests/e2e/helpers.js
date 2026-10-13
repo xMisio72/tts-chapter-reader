@@ -20,14 +20,13 @@ window.__tcrTest = (() => {
     const s = p.session;
     return {
       active: a.isActive(),
-      t: +a.getCurrentTime().toFixed(2),
-      duration: a.getDuration() > 0 ? +a.getDuration().toFixed(2) : null,
-      paused: a.isPlaybackPaused(),
+      t: +a.audio.currentTime.toFixed(2),
+      duration: Number.isFinite(a.audio.duration) ? +a.audio.duration.toFixed(2) : null,
+      paused: a.audio.paused,
       loading: a.loading,
       speaking: a.speaking,
       idx: a.chapterIndex,
-      rate: a.getRate(),
-      stretch: a.useStretch,
+      rate: a.audio.playbackRate,
       device: p.worker.loaded ? p.worker.loaded.device : null,
       listShown: !!document.querySelector('.tcr-chapters'),
       chapters: s
@@ -38,7 +37,7 @@ window.__tcrTest = (() => {
 
   const playing = () => {
     const a = P().audioManager;
-    return a.isActive() && !a.loading && !a.isPlaybackPaused() && a.getCurrentTime() > 0.05;
+    return !a.loading && !a.audio.paused && a.audio.currentTime > 0.05;
   };
 
   const openNote = async (path) => {

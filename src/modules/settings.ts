@@ -212,11 +212,6 @@ export class TtsChapterReaderSettingTab extends PluginSettingTab {
         heading: 'Player',
         items: [
           { name: 'Speed', desc: 'From 0.5x to 3x.', control: { type: 'slider', key: 'playbackSpeed', min: 0.5, max: 3, step: 0.1, displayFormat: (v) => `${v.toFixed(1)}x` } },
-          {
-            name: 'Crisp speed',
-            desc: "Recordings play through the plugin's own time-stretcher: every speed keeps the natural pitch and the first sounds of a sentence stay sharp. Off: the browser's speed control. Takes effect with the next chapter.",
-            control: { type: 'toggle', key: 'crispSpeed' },
-          },
           { name: 'Follow the reading in the note', desc: 'Marks the paragraph being read and keeps it in view while the note is open in an editor.', control: { type: 'toggle', key: 'followReading' } },
           {
             name: 'Pause at the start of each chapter',
@@ -888,16 +883,6 @@ export class TtsChapterReaderSettingTab extends PluginSettingTab {
           this.settings.followReading = value;
           await this.save();
           if (!value) this.plugin.readingMarker.clear();
-        }),
-      );
-
-    new Setting(containerEl)
-      .setName('Crisp speed')
-      .setDesc("Recordings play through the plugin's own time-stretcher: every speed keeps the natural pitch and the first sounds of a sentence stay sharp. Off: the browser's speed control. Takes effect with the next chapter.")
-      .addToggle((toggle) =>
-        toggle.setValue(this.settings.crispSpeed).onChange(async (value) => {
-          this.settings.crispSpeed = value;
-          await this.save();
         }),
       );
 
