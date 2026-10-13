@@ -30,16 +30,16 @@ Reading starts by itself once the voice is ready.
 - **Starts fast.** Playback begins after the first sentence while the rest of the chapter is still being recorded. Later chapters are recorded in the background.
 - **Speed from 0.5x to 3x** with natural pitch. A speaker icon in the controls holds the plugin's own volume: click for the slider, scroll on it to nudge, click the percentage to mute and unmute (back to the level you had), so notes can play quietly next to music or a call.
 - **Favorites and hidden chapters.** Star the chapters you like; hide the ones playback should skip.
-- **Follows along.** The paragraph being read is marked in the note and kept in view (Settings → Player → Follow the reading in the note).
+- **Follows along.** The paragraph being read is marked in the note, the words being spoken inside it a shade stronger, and both are kept in view (Settings → Player → Follow the reading in the note).
 - **Start where you click.** Ctrl+Alt+click a paragraph (Cmd+Alt on Mac), or use "Read aloud from here", and the note starts at that paragraph's chapter, right at the paragraph when it is already recorded.
 - **Picks up where you stopped.** Open a note you listened to before and it continues at the chapter and second where you left off. Reading a note to the end starts it from the top next time.
 - **Reading list.** Right-click a note or folder → "Add to the reading list"; the player shows what is up next and goes on with it when the current note ends. "Read the notes this note links to" turns a note of links (your daily list) into a reading list in one go.
 - **Read a selection** or **read from the cursor** when you do not want the whole note. Headings inside the selection still become chapters; only favorites and hidden marks need the whole note.
 - **Favorites only.** When a note has favorite chapters, a star in the chapter list plays only those.
 - **Export as MP3.** "Export this note as an MP3 file" saves all chapters as one file beside the note.
-- **Per-note voice and speed.** Add `tts-speed: 1.3` or `tts-voice: bm_george` to a note's properties and that note is read that way.
+- **Per-note voice, speed and language.** Add `tts-speed: 1.3` or `tts-voice: bm_george` to a note's properties and that note is read that way. `tts-lang: de` tells the plugin the note's language without guessing; `tts-lang: en` means "read it as it is".
 - **Compact player.** The arrows in the player's header fold it to a header and one row of controls; the "?" lists all commands with their hotkeys and copies the spoken text.
-- **Clean text.** Properties, code blocks, tables, images, link addresses and Markdown symbols are not read aloud. You choose what to skip in the settings.
+- **Clean text.** Properties, code blocks, tables, images, web and e-mail addresses and Markdown symbols are not read aloud. You choose what to skip in the settings. English voices say dates as words: `2026-04-03` and `03.04.2026` become "third April 2026".
 
 ![The small player: one row with chapter buttons, play/pause, stop, volume and the position](https://raw.githubusercontent.com/xMisio72/tts-chapter-reader/main/docs/mini-player.png)
 

@@ -85,6 +85,47 @@ export function replaceComparisonSymbols(text: string, settings?: FilterSettings
     .join('\n');
 }
 
+// ---------------------------------------------------------------- addresses and dates
+
+/** Web addresses: scheme://…, www.…, a bare domain with a path, each optionally in angle brackets. */
+const ADDRESS = /<?(?:https?:\/\/|ftp:\/\/|www\.)[^\s<>"')\]]+[^\s<>"')\].,;:!?]>?|<?\b[a-z0-9-]+(?:\.[a-z0-9-]+)+\/[^\s<>"')\]]*[^\s<>"')\].,;:!?]>?/gi;
+const EMAIL = /\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b/g;
+
+/** Addresses are not read aloud; the words around them close up. */
+export function stripAddresses(text: string): string {
+  return text
+    .replace(ADDRESS, '')
+    .replace(EMAIL, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/ +([.,;:!?])/g, '$1');
+}
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const ORDINALS = [
+  '', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth',
+  'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth', 'twentieth',
+  'twenty-first', 'twenty-second', 'twenty-third', 'twenty-fourth', 'twenty-fifth', 'twenty-sixth', 'twenty-seventh', 'twenty-eighth', 'twenty-ninth', 'thirtieth', 'thirty-first',
+];
+/** 2026-04-03 or 2026/04/03; a "T" before a time becomes a space ("2026-04-03T14:30"). */
+const ISO_DATE = /(?<![\d.-])(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?![\d-])(T(?=\d))?/g;
+/** 03.04.2026 (day.month.year). */
+const DOTTED_DATE = /(?<![\d.])(\d{1,2})\.(\d{1,2})\.(\d{4})(?!\.?\d)/g;
+
+function spokenDate(year: number, month: number, day: number): string | null {
+  if (month < 1 || month > 12 || day < 1 || day > 31 || year < 1000 || year > 2999) return null;
+  return `${ORDINALS[day]} ${MONTHS[month - 1]} ${year}`;
+}
+
+/** Dates as an English voice should say them: "2026-04-03" and "03.04.2026" become "third April 2026". */
+export function spokenDates(text: string): string {
+  return text
+    .replace(ISO_DATE, (whole, y: string, m: string, d: string, t: string | undefined) => {
+      const spoken = spokenDate(Number(y), Number(m), Number(d));
+      return spoken ? spoken + (t ? ' ' : '') : whole;
+    })
+    .replace(DOTTED_DATE, (whole, d: string, m: string, y: string) => spokenDate(Number(y), Number(m), Number(d)) ?? whole);
+}
+
 /** Filters that are on when the caller passes no settings (the plugin's defaults). */
 const DEFAULT_ON: ReadonlySet<keyof TextFilterSettings> = new Set(['filterFrontmatter', 'filterCodeBlocks', 'filterInlineCode', 'filterHtmlTags']);
 
@@ -219,7 +260,7 @@ function inlinePass(line: string, on: (key: keyof TextFilterSettings) => boolean
   const skipLinks = on('filterMarkdownLinks');
   s = s.replace(/\[([^\]]*)\]\([^)]*\)/g, skipLinks ? '' : '$1');
   s = s.replace(/\[\[([^\]|]*)\|([^\]]*)\]\]/g, skipLinks ? '' : '$2').replace(/\[\[([^\]]*)\]\]/g, skipLinks ? '' : '$1');
-  s = s.replace(/https?:\/\/\S+/g, '');
+  s = stripAddresses(s);
   if (on('filterFootnotes')) s = s.replace(/\[\^[^\]]+\]/g, '');
   s = s.replace(/\[[ xX]\][ \t]*/g, '');
   // Emphasis marks go, words stay; underscores inside identifiers are left alone.

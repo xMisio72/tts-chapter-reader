@@ -5,11 +5,12 @@ import type { AudioPlaybackManager, ChapterProvider, ChapterSource } from './aud
 import { splitIntoChapters } from './chapter-split';
 import type { Engine } from './engines';
 import { detectChapterLanguages } from './language';
+import { spokenDates } from '../utils';
 import type { Recorder } from './recorder';
 import type { ChapterFlags, PluginSettings, RecordAhead } from './settings-data';
 import type { SegmentMark } from '../shared/idb';
 import type { TextSegment } from '../shared/protocol';
-import { CHAPTER_LEAD_MS, estimateSeconds, toSegments, withChapterLead } from './text-segments';
+import { CHAPTER_LEAD_MS, SENTENCE_END, estimateSeconds, toSegments, withChapterLead } from './text-segments';
 import { cachedTranslation, storeTranslation, translateText, type Translator } from './translators';
 import { JobCancelled, type CancelToken } from './tts-worker-client';
 
@@ -63,6 +64,8 @@ export interface ChapterSession {
   spokenText(): string;
   /** Note lines [from, to] being read at `time` seconds into chapter `i`; null when unknown. */
   positionLines(i: number, time: number): [number, number] | null;
+  /** The words being spoken at `time` seconds into chapter `i` (one recorded piece), when known. */
+  positionSentence?(i: number, time: number): string | null;
   /** The chapter that contains note line `line`, and the time in it where that paragraph starts (null: unknown, start of chapter). */
   locate(line: number): { index: number; time: number | null } | null;
   /** Begin at chapter `index` (default: the first playable one), `time` seconds in when known. False when nothing may play. */
@@ -133,6 +136,8 @@ export interface LocalSessionSource {
   notePath: string | null;
   title: string;
   getMarkdown: () => Promise<string>;
+  /** The note's own `tts-lang` property (ISO 639-1); outranks language detection. */
+  language?: string | null;
 }
 
 export class LocalChapterSession implements ChapterSession {
@@ -185,7 +190,9 @@ export class LocalChapterSession implements ChapterSession {
     });
     const flags = this.source.notePath ? settings.chapterFlags[this.source.notePath] ?? {} : {};
     const translation = this.deps.getTranslation();
-    const languages = translation.wanted ? detectChapterLanguages(parts.map((p) => p.text)) : parts.map(() => null);
+    // A note's `tts-lang` property outranks detection (`en` = read as it is).
+    const noteLanguage = this.source.language ?? null;
+    const languages = !translation.wanted ? parts.map(() => null) : noteLanguage ? parts.map(() => noteLanguage) : detectChapterLanguages(parts.map((p) => p.text));
 
     const chapters: LocalChapter[] = [];
     for (const [i, part] of parts.entries()) {
@@ -204,6 +211,8 @@ export class LocalChapterSession implements ChapterSession {
           needsTranslation = true;
         }
       }
+      // An English voice says dates as words ("third April 2026"); other languages keep their digits.
+      if (engine?.id === 'builtin' || translated || languages[i] === 'en' || noteLanguage === 'en') text = spokenDates(text);
       // The system voice keeps no recordings, so there is nothing to look up.
       // A chapter still waiting for its translation must not match a recording
       // of the untranslated text.
@@ -267,6 +276,30 @@ export class LocalChapterSession implements ChapterSession {
     return paragraph !== undefined && c.paragraphLines[paragraph] ? c.paragraphLines[paragraph] : whole;
   }
 
+  positionSentence(i: number, time: number): string | null {
+    const c = this.chapters[i];
+    if (!c?.marks?.length || !c.paragraphLines) return null;
+    const found = c.marks.findIndex((m) => time < m.end);
+    const piece = found < 0 ? c.marks.length - 1 : found;
+    // A recorded piece spans the segments from its mark up to the next mark's.
+    const from = c.marks[piece].segment;
+    const to = c.marks[piece + 1]?.segment ?? c.segments.length;
+    const text = c.segments.slice(from, to).map((s) => s.text).join(' ').trim();
+    if (!text) return null;
+    // Within a piece the voice keeps a steady pace, so how far into the piece we
+    // are says which of its sentences is being spoken.
+    const start = piece > 0 ? c.marks[piece - 1].end : 0;
+    const length = c.marks[piece].end - start;
+    const progress = length > 0 ? Math.min(1, Math.max(0, (time - start) / length)) : 0;
+    const sentences = text.split(new RegExp(SENTENCE_END.source)).filter((s) => s.trim());
+    let seen = 0;
+    for (const sentence of sentences) {
+      seen += sentence.length + 1;
+      if (seen / (text.length + 1) > progress) return sentence;
+    }
+    return sentences[sentences.length - 1] ?? text;
+  }
+
   locate(line: number): { index: number; time: number | null } | null {
     const c = this.chapters.find((ch) => line >= ch.line && line <= ch.endLine && !ch.empty);
     if (!c) return null;
@@ -320,10 +353,11 @@ export class LocalChapterSession implements ChapterSession {
         return current && current !== chapter ? [chapter, current] : [chapter];
       };
       try {
-        const text = await translateText(translator, chapter.source, chapter.lang, cancel);
+        const raw = await translateText(translator, chapter.source, chapter.lang, cancel);
         // A cancelled or ended session must not leave a half-trusted result behind.
         if (this.destroyed || cancel.cancelled) throw new JobCancelled();
-        await storeTranslation(translator.id(), chapter.source, text);
+        await storeTranslation(translator.id(), chapter.source, raw);
+        const text = spokenDates(raw);
         if (this.destroyed) return false;
         const engine = this.deps.getEngine();
         const hash = engine ? await contentHash(this.fingerprint(engine), text) : '';

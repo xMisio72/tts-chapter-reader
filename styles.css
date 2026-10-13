@@ -548,6 +548,12 @@
 	box-shadow: inset 3px 0 0 hsla(var(--color-accent-hsl), 0.6);
 }
 
+/* The words being spoken inside the marked paragraph. */
+.tcr-reading-words {
+	background-color: hsla(var(--color-accent-hsl), 0.28);
+	border-radius: 2px;
+}
+
 /* "EN": this chapter is read in English translation */
 .tcr-chapter-lang {
 	flex-shrink: 0;

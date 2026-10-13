@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { CHAPTER_LEAD_MS, estimateSeconds, groupSegments, toSegments, withChapterLead } from '../../src/modules/text-segments';
-import { filterMarkdown } from '../../src/utils';
+import { filterMarkdown, spokenDates, stripAddresses } from '../../src/utils';
+import { locateSentence } from '../../src/modules/text-locate';
 import { DEFAULT_SETTINGS } from '../../src/modules/settings-data';
 
 const clean = (md: string) => filterMarkdown(md, DEFAULT_SETTINGS.textFiltering, DEFAULT_SETTINGS.symbolReplacement);
@@ -106,7 +107,30 @@ test('words after a closing comment marker are spoken', () => {
 
 test('skipping links entirely drops note links too', () => {
   const skip = { ...DEFAULT_SETTINGS.textFiltering, filterMarkdownLinks: true };
-  assert.equal(filterMarkdown('See [docs](https://x.y) and [[Other|that]] or [[Plain]].', skip, DEFAULT_SETTINGS.symbolReplacement), 'See and or .');
+  assert.equal(filterMarkdown('See [docs](https://x.y) and [[Other|that]] or [[Plain]].', skip, DEFAULT_SETTINGS.symbolReplacement), 'See and or.');
+});
+
+test('web and e-mail addresses are not read, plain domains without a path are', () => {
+  assert.equal(stripAddresses('See www.example.com/page and write to a.b@example.com now.'), 'See and write to now.');
+  assert.equal(stripAddresses('Read <https://example.com/x> first.'), 'Read first.');
+  assert.equal(stripAddresses('Visit obsidian.md today.'), 'Visit obsidian.md today.');
+  assert.equal(clean('Docs at docs.example.com/guide/intro explain it.'), 'Docs at explain it.');
+});
+
+test('dates are said as words for an English voice', () => {
+  assert.equal(spokenDates('Meeting 2026-04-03T14:30, then 03.04.2026 and 2026/12/31.'), 'Meeting third April 2026 14:30, then third April 2026 and thirty-first December 2026.');
+  assert.equal(spokenDates('Version 13.13.2026 and 2026-00-10 stay.'), 'Version 13.13.2026 and 2026-00-10 stay.');
+  assert.equal(spokenDates(spokenDates('On 2026-10-07.')), 'On seventh October 2026.');
+});
+
+test('spoken words are found in the markdown they came from', () => {
+  const raw = 'Some **bold** text here. See [the docs](https://x.y/z) for more, really. Last one.';
+  const range = locateSentence(raw, 'See the docs for more, really.');
+  assert.ok(range);
+  assert.equal(raw.slice(range[0], range[1]), 'See [the docs](https://x.y/z) for more, really');
+  assert.deepEqual(locateSentence(raw, 'Alpha.'), null);
+  const short = locateSentence(raw, 'Last one.');
+  assert.equal(raw.slice(short![0], short![1]), 'Last one');
 });
 
 test('a one-line formula leaves no dollar signs behind', () => {

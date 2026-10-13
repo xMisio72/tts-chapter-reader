@@ -41,8 +41,8 @@ export default class TtsChapterReaderPlugin extends Plugin {
   readingMarker = new ReadingMarker();
 
   private worker = new TtsWorkerClient();
-  /** What the session being read overrides: a note's `tts-voice`/`tts-speed`, or the speaker of a sample. */
-  private noteOverrides: { builtinVoice?: string; geminiVoice?: string; systemVoice?: string; speed?: number } = {};
+  /** What the session being read overrides: a note's `tts-voice`/`tts-speed`/`tts-lang`, or the speaker of a sample. */
+  private noteOverrides: { builtinVoice?: string; geminiVoice?: string; systemVoice?: string; speed?: number; lang?: string } = {};
   private lastPositionSave = 0;
   /** The note was read to the end and the player is only open for a replay. */
   private readingDone = false;
@@ -394,6 +394,7 @@ export default class TtsChapterReaderPlugin extends Plugin {
     const session = this.localSession({
       notePath: file.path,
       title: file.basename,
+      language: this.overridesFor(file).lang ?? null,
       getMarkdown: () => this.app.vault.cachedRead(file),
     });
     if (!(await session.load())) {
@@ -535,16 +536,19 @@ export default class TtsChapterReaderPlugin extends Plugin {
     await this.readText(SAMPLE_TEXT, 'Voice sample', overrides);
   }
 
-  /** Read `tts-voice` and `tts-speed` from a note's properties. */
-  private overridesFor(file: TFile): { builtinVoice?: string; speed?: number } {
+  /** Read `tts-voice`, `tts-speed` and `tts-lang` from a note's properties. */
+  private overridesFor(file: TFile): { builtinVoice?: string; speed?: number; lang?: string } {
     // Properties are untyped; read them as unknown values.
     const raw: unknown = this.app.metadataCache.getFileCache(file)?.frontmatter;
     const fm = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : undefined;
-    const out: { builtinVoice?: string; speed?: number } = {};
+    const out: { builtinVoice?: string; speed?: number; lang?: string } = {};
     const voice = fm?.['tts-voice'];
     if (typeof voice === 'string' && isBuiltinVoice(voice.trim())) out.builtinVoice = voice.trim();
     const speed = Number(fm?.['tts-speed']);
     if (Number.isFinite(speed) && speed >= 0.5 && speed <= 3) out.speed = Math.round(speed * 10) / 10;
+    // A two-letter language code; `en` means "read as it is, do not translate".
+    const lang = fm?.['tts-lang'];
+    if (typeof lang === 'string' && /^[a-z]{2}$/i.test(lang.trim())) out.lang = lang.trim().toLowerCase();
     return out;
   }
 
@@ -571,7 +575,7 @@ export default class TtsChapterReaderPlugin extends Plugin {
       return;
     }
     const cm = editorView(view.editor);
-    if (cm) this.readingMarker.show(cm, lines[0], lines[1]);
+    if (cm) this.readingMarker.show(cm, lines[0], lines[1], session.positionSentence?.(index, time) ?? null);
   }
 
   /** Keep where the listener is, a few times a minute, so the note can go on from there next time. */
@@ -723,6 +727,7 @@ export default class TtsChapterReaderPlugin extends Plugin {
     const session = this.localSession({
       notePath: file.path,
       title: file.basename,
+      language: this.noteOverrides.lang ?? null,
       // The editor has the latest text, saved or not.
       getMarkdown: async () => {
         const openEditor = this.app.workspace.getActiveFile()?.path === file.path ? this.app.workspace.activeEditor?.editor : undefined;
