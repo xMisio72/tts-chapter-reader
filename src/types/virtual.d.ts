@@ -10,6 +10,12 @@ declare module 'virtual:ort-loader' {
   export default source;
 }
 
+/** Signalsmith Stretch for Web Audio (ships without typings). */
+declare module 'signalsmith-stretch' {
+  const SignalsmithStretch: (audioContext: AudioContext, options?: AudioWorkletNodeOptions) => Promise<AudioWorkletNode>;
+  export default SignalsmithStretch;
+}
+
 /** Facts about the runtime binary the worker was built against. */
 declare const __ORT_VERSION__: string;
 declare const __ORT_WASM_FILE__: string;

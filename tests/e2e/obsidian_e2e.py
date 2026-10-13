@@ -130,22 +130,26 @@ def check_controls():
     r = js("""
       const a = T.P().audioManager;
       a.pausePlayback(); await T.sleep(300);
-      const paused = a.audio.paused && a.isPlaybackPaused();
-      a.resumePlayback(); await T.until(() => !a.audio.paused, 3000, 'resume');
+      const t0 = a.getCurrentTime(); await T.sleep(400);
+      // Paused means the position stands still, whichever player is in use.
+      const paused = a.isPlaybackPaused() && Math.abs(a.getCurrentTime() - t0) < 0.05;
+      a.resumePlayback(); await T.until(() => !a.isPlaybackPaused(), 3000, 'resume');
       a.seekPlayback(1.5); await T.sleep(200);
-      const seeked = a.audio.currentTime;
+      const seeked = a.getCurrentTime();
       a.setPlaybackSpeed(2.0); await T.sleep(200);
-      const rate = a.audio.playbackRate;
+      const rate = a.getRate();
+      const stretch = T.state().stretch;
       a.setPlaybackSpeed(1.0);
       a.nextPart(); await T.until(() => T.state().idx === 1 && T.playing(), 5000, 'next chapter');
       a.previousPart(); await T.until(() => T.state().idx === 0 && T.playing(), 5000, 'previous chapter');
       T.P().session.play(3); await T.until(() => T.state().idx === 3 && T.playing(), 5000, 'jump to chapter 4');
-      return { paused, seeked, rate };
+      return { paused, seeked, rate, stretch };
     """)
     assert r["paused"], "pause did not pause"
     assert 1.3 < r["seeked"] < 2.2, r["seeked"]
     assert r["rate"] == 2.0, r["rate"]
-    return "pause/resume, seek, 2x speed, next/previous/jump all respond"
+    assert r["stretch"], "a finished recording should play through the time-stretcher"
+    return "pause/resume, seek, 2x speed, next/previous/jump all respond (time-stretcher)"
 
 
 def check_auto_advance():
@@ -154,7 +158,7 @@ def check_auto_advance():
       const p = T.P(); const s = p.session; const a = p.audioManager;
       s.toggleHidden(1);                                   // hide "Alpha"
       s.play(0); await T.until(() => T.state().idx === 0 && T.playing(), 5000, 'chapter 1');
-      a.seekPlayback(a.audio.duration - 0.4);
+      a.seekPlayback(a.getDuration() - 0.4);
       await T.until(() => T.state().idx === 2 && T.playing(), 8000, 'auto-advance past the hidden chapter');
       const saved = JSON.parse(JSON.stringify(p.settings.chapterFlags));
       s.togglePinned(2);

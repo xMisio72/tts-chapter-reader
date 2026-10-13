@@ -3,6 +3,7 @@ import type { TextSegment } from '../shared/protocol';
 import { EngineError } from './engines';
 import type { Recording } from './recorder';
 import type { PluginSettings } from './settings-data';
+import { StretchPlayer } from './stretch-player';
 import { toSegments } from './text-segments';
 import { JobCancelled } from './tts-worker-client';
 
@@ -16,8 +17,9 @@ import { JobCancelled } from './tts-worker-client';
  *  - 'speech': text for the system voice, which speaks directly and gives no
  *              audio back (no seeking, nothing to save)
  *
- * Speed is always the audio element's playbackRate, which keeps the pitch
- * natural; recordings themselves are made at normal speed.
+ * Recordings are made at normal speed. A finished recording plays through the
+ * plugin's own time-stretcher (setting "Crisp speed"); a stream and the
+ * fallback use the audio element's playbackRate. Both keep the pitch natural.
  */
 
 export type ChapterSource =
@@ -186,6 +188,9 @@ export class AudioPlaybackManager {
   /** System speaker for this session (a sample from the picker); null = the setting. */
   systemVoiceOverride: string | null = null;
   private pendingSeek: number | null = null;
+  /** The time-stretcher, created on first use; `useStretch` says the current chapter plays through it. */
+  private stretch: StretchPlayer | null = null;
+  private useStretch = false;
 
   constructor(settings: PluginSettings, updateStatusBarCallback: (withControls: boolean) => void) {
     this.settings = settings;
@@ -219,16 +224,36 @@ export class AudioPlaybackManager {
 
   // ------------------------------------------------------------ state
 
+  /** Seconds into the current chapter. */
+  getCurrentTime(): number {
+    if (this.speaking) return 0;
+    return this.useStretch && this.stretch ? this.stretch.currentTime() : this.audio.currentTime;
+  }
+
+  /** Length of the current chapter in seconds (the expected length while it is still being recorded). */
+  getDuration(): number {
+    if (this.speaking) return 0;
+    if (this.useStretch && this.stretch) return this.stretch.duration;
+    if (this.stream && !this.stream.complete) return Math.max(this.stream.bufferedEnd, this.streamEstimate);
+    return Number.isFinite(this.audio.duration) ? this.audio.duration : 0;
+  }
+
+  getRate(): number {
+    return this.speed;
+  }
+
+  private isPlaying(): boolean {
+    if (this.speaking) return !this.speechPaused;
+    if (this.loading) return false;
+    if (this.useStretch) return !this.paused;
+    return !this.audio.paused && !this.audio.ended;
+  }
+
   private state(): PlaybackState {
-    let duration = Number.isFinite(this.audio.duration) ? this.audio.duration : 0;
-    if (this.stream && !this.stream.complete) {
-      // Still recording: show the expected length until the real one is known.
-      duration = Math.max(this.stream.bufferedEnd, this.streamEstimate);
-    }
     return {
-      currentTime: this.speaking ? 0 : this.audio.currentTime,
-      duration: this.speaking ? 0 : duration,
-      isPlaying: this.speaking ? !this.speechPaused : !this.audio.paused && !this.audio.ended && !this.loading,
+      currentTime: this.getCurrentTime(),
+      duration: this.getDuration(),
+      isPlaying: this.isPlaying(),
       isLoading: this.loading,
       currentPart: this.provider ? this.chapterIndex + 1 : undefined,
       totalParts: this.provider ? this.provider.count : undefined,
@@ -239,7 +264,7 @@ export class AudioPlaybackManager {
 
   private push(): void {
     this.updatePlayer(this.state());
-    if (this.provider && !this.speaking && !this.loading) this.onProgress(this.chapterIndex, this.audio.currentTime);
+    if (this.provider && !this.speaking && !this.loading) this.onProgress(this.chapterIndex, this.getCurrentTime());
   }
 
   private notice(message: string, timeout?: number): void {
@@ -412,10 +437,50 @@ export class AudioPlaybackManager {
   }
 
   private async playRecording(data: ArrayBuffer, id: number): Promise<void> {
+    if (this.settings.crispSpeed && StretchPlayer.supported()) {
+      await this.playStretched(data, id);
+      return;
+    }
     this.blobUrl = URL.createObjectURL(new Blob([data], { type: 'audio/mpeg' }));
     this.audio.src = this.blobUrl;
     this.audio.load();
     await this.startElement(id);
+  }
+
+  private stretchPlayer(): StretchPlayer {
+    if (!this.stretch) {
+      const player = new StretchPlayer();
+      player.setVolume(this.audio.volume);
+      player.onTime = () => {
+        if (this.useStretch) this.push();
+      };
+      player.onEnded = () => {
+        if (this.useStretch) this.onChapterEnded();
+      };
+      player.onError = (e) => {
+        if (this.useStretch) this.fail(e, this.playbackId);
+      };
+      this.stretch = player;
+    }
+    return this.stretch;
+  }
+
+  /** A finished recording through the time-stretcher: natural pitch and sharp onsets at any speed. */
+  private async playStretched(data: ArrayBuffer, id: number): Promise<void> {
+    const player = this.stretchPlayer();
+    const duration = await player.load(data);
+    if (id !== this.playbackId) return;
+    this.useStretch = true;
+    const seek = this.pendingSeek;
+    this.pendingSeek = null;
+    const at = seek !== null && seek < duration - 1 ? seek : 0;
+    await player.play(at, this.speed);
+    if (id !== this.playbackId) return;
+    this.paused = false;
+    this.loading = false;
+    this.status = '';
+    this.updateStatusBarCallback(true);
+    this.push();
   }
 
   private async playStream(recording: Recording, estSeconds: number, id: number): Promise<void> {
@@ -524,6 +589,12 @@ export class AudioPlaybackManager {
       this.paused = true;
       this.updateStatusBarCallback(true);
       this.push();
+    } else if (this.useStretch) {
+      if (this.paused || !this.stretch) return;
+      this.stretch.pause();
+      this.paused = true;
+      this.updateStatusBarCallback(true);
+      this.push();
     } else if (!this.audio.paused) {
       this.audio.pause();
     }
@@ -533,6 +604,12 @@ export class AudioPlaybackManager {
     if (this.speaking) {
       window.speechSynthesis.resume();
       this.speechPaused = false;
+      this.paused = false;
+      this.updateStatusBarCallback(true);
+      this.push();
+    } else if (this.useStretch) {
+      if (!this.paused || !this.stretch) return;
+      this.stretch.resume();
       this.paused = false;
       this.updateStatusBarCallback(true);
       this.push();
@@ -570,6 +647,11 @@ export class AudioPlaybackManager {
     this.unsubscribeStream?.();
     this.unsubscribeStream = null;
 
+    if (this.useStretch) {
+      this.useStretch = false;
+      this.stretch?.stop();
+    }
+
     this.audio.pause();
     if (this.audio.src) {
       this.audio.removeAttribute('src');
@@ -592,6 +674,7 @@ export class AudioPlaybackManager {
 
   /** How far the listener may seek: the whole recording, or what exists of it so far. */
   private seekLimit(): number {
+    if (this.useStretch) return this.stretch?.duration ?? 0;
     if (this.stream && !this.stream.complete) return Math.max(0, this.stream.bufferedEnd - 0.25);
     return Number.isFinite(this.audio.duration) ? this.audio.duration : 0;
   }
@@ -600,26 +683,37 @@ export class AudioPlaybackManager {
     if (this.speaking) return;
     const limit = this.seekLimit();
     if (limit <= 0) return;
-    this.audio.currentTime = Math.max(0, Math.min(time, limit));
+    const target = Math.max(0, Math.min(time, limit));
+    if (this.useStretch) this.stretch?.seek(target);
+    else this.audio.currentTime = target;
   }
 
   jumpForward(seconds = 10): void {
-    this.seekPlayback(this.audio.currentTime + seconds);
+    this.seekPlayback(this.getCurrentTime() + seconds);
   }
 
   jumpBackward(seconds = 10): void {
-    this.seekPlayback(this.audio.currentTime - seconds);
+    this.seekPlayback(this.getCurrentTime() - seconds);
   }
 
   setPlaybackSpeed(speed: number): void {
     this.speed = speed;
     this.audio.playbackRate = speed;
+    this.stretch?.setRate(speed);
     this.restartSpeech();
   }
 
   /** 0 to 1. Takes effect at once; the system voice says its current sentence again at the new volume. */
   setVolume(volume: number): void {
     this.audio.volume = Math.max(0, Math.min(1, volume));
+    this.stretch?.setVolume(this.audio.volume);
     this.restartSpeech();
+  }
+
+  /** Plugin unload: stop everything and release the audio context. */
+  destroy(): void {
+    this.teardownSource();
+    this.stretch?.destroy();
+    this.stretch = null;
   }
 }

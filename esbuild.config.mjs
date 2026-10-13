@@ -56,7 +56,10 @@ const context = await esbuild.context({
 		"@electron/remote",
 	],
 	format: "cjs",
-	target: "es2020",
+	// es2022, not lower: the time-stretcher builds its AudioWorklet from the
+	// source text of its own functions, and lowering class fields would make
+	// that text depend on a helper the worklet scope does not have.
+	target: "es2022",
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
